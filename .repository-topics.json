@@ -1,0 +1,12 @@
+[
+  "alerts",
+  "axum",
+  "eal",
+  "embeddings",
+  "leptos",
+  "pgvector",
+  "rust",
+  "semantic-search",
+  "ssr",
+  "websocket"
+]
