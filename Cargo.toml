@@ -1,24 +1,12 @@
 [package]
 name = "eal-leptos-web"
 version = "0.1.0"
-edition = "2021"
-rust-version = "1.82"
-license = "MIT"
-description = "Leptos SSR + Axum + WebSocket comparison server for Embedded Alerts."
-repository = "https://github.com/embedded-alerts/eal-leptos-web"
+edition = "2024"
 publish = false
 
-[dependencies]
-axum = { version = "0.8", features = ["ws"] }
-futures-util = "0.3"
-leptos = { version = "0.7", features = ["ssr"] }
-serde_json = "1"
-tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "sync"] }
-tower-http = { version = "0.6", features = ["trace"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+[package.metadata.product]
+stack = "Leptos with shared interfaces"
 
-[profile.release]
-lto = "thin"
-codegen-units = 1
-strip = "symbols"
+[dependencies]
+axum = "0.8"
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread"] }
