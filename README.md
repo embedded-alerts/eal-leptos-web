@@ -1,33 +1,40 @@
 # eal-leptos-web
 
-**Embedded Alerts — Leptos server-rendered Rust web server with Axum WebSockets**
+Server-rendered Leptos user dashboard for Embedded Alerts.
 
-Embedding-native monitoring and alerting that continuously matches user intents against newly ingested documents, feeds, pages, and streams.
-
-This repository was bootstrapped on 2026-08-04. It is designed as an independently deployable component and as a member of the `eal-monorepo` workspace.
-
-## GitHub target
-
-`embedded-alerts/eal-leptos-web`
-
-## Baseline
-
-- Rust 2024 edition for backend and native components.
-- Axum HTTP/WebSocket transport.
-- Supabase/PostgreSQL configuration through `DATABASE_URL`, `SUPABASE_URL`, and environment-only secrets.
-- OpenTelemetry-compatible tracing hooks.
-- Docker, Nix, and GitHub Actions entry points.
-- Contracts live in `eal-interfaces`; shared behavior lives in `eal-libs`.
+The application is an API client, not a second index, database, crawler, realtime bus, or delivery engine. It shows registered source boundaries, immutable page revisions, candidate matches, and a natural-language interest preview. Preview searches deliberately omit an alert-rule revision, so they cannot create candidates or send notifications.
 
 ## Development
 
 ```bash
-cp .env.example .env 2>/dev/null || true
-nix develop  # optional
-cargo fmt --check 2>/dev/null || true
-cargo test 2>/dev/null || true
+cp .env.example .env
+cargo run
 ```
 
-## Status
+Required configuration:
 
-Foundation scaffold. Domain behavior, persistence migrations, authentication policy, and production secrets must be reviewed before deployment.
+- `APP_ENV=development|test`; production intentionally fails startup.
+- `EAL_API_BASE_URL` points to `eal-api` and may not contain URL credentials.
+- `EAL_TENANT_ID` is the temporary server-side tenant selector until Shared Auth claims are certified.
+- `HOST` and `PORT` configure the listener.
+
+The API client blocks redirects, uses connection/request timeouts, caps decoded responses at 4 MiB, and never accepts tenant identity from browser form/query input.
+
+## Production gates
+
+1. Shared Auth replaces the development tenant header.
+2. Alert rules, source/page revisions, embeddings, and candidates use tenant-scoped PostgreSQL/pgvector repositories.
+3. Authenticated tenant-filtered events replace process-local WebSockets.
+4. DEN-3460 provides a durable outbox, cooldown/grouping, provider idempotency, receipts, retries, and dead letters.
+5. Origin/CSP and cross-tenant/restart canaries pass in `embedded-alerts-test`.
+
+## Validation
+
+```bash
+python3 scripts/verify_repo.py
+cargo fmt --all -- --check
+cargo clippy --all-targets --all-features -- -D warnings
+cargo test --all-targets --all-features
+```
+
+Linear: DEN-3461; related DEN-3459, DEN-3460, DEN-3462.
