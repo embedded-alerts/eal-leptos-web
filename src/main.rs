@@ -243,8 +243,20 @@ fn page_card(page: PageIndexRecord) -> impl IntoView {
         .previous_revision_id
         .map(short_uuid)
         .unwrap_or_else(|| "first revision".into());
-    let keywords = page.keywords.iter().take(8).cloned().collect::<Vec<_>>().join(" · ");
-    let entities = page.entities.iter().take(6).cloned().collect::<Vec<_>>().join(" · ");
+    let keywords = page
+        .keywords
+        .iter()
+        .take(8)
+        .cloned()
+        .collect::<Vec<_>>()
+        .join(" · ");
+    let entities = page
+        .entities
+        .iter()
+        .take(6)
+        .cloned()
+        .collect::<Vec<_>>()
+        .join(" · ");
     view! {
         <article class="revision-card">
             <div class="card-head">
@@ -437,15 +449,10 @@ async fn index(State(state): State<AppState>) -> Html<String> {
     render_page(load_dashboard(&state, String::new(), None, None).await)
 }
 
-async fn preview(
-    State(state): State<AppState>,
-    Form(form): Form<PreviewForm>,
-) -> Html<String> {
+async fn preview(State(state): State<AppState>, Form(form): Form<PreviewForm>) -> Html<String> {
     let query_text = form.query_text.trim().to_owned();
     match SemanticSearchRequest::try_from(form) {
-        Ok(request) => {
-            render_page(load_dashboard(&state, query_text, Some(request), None).await)
-        }
+        Ok(request) => render_page(load_dashboard(&state, query_text, Some(request), None).await),
         Err(error) => render_page(load_dashboard(&state, query_text, None, Some(error)).await),
     }
 }
@@ -465,7 +472,11 @@ async fn health(State(state): State<AppState>) -> Json<DashboardHealth> {
     let api_health = state.api.health().await.ok();
     Json(DashboardHealth {
         service: "eal-leptos-web",
-        status: if api_health.is_some() { "degraded" } else { "unavailable" },
+        status: if api_health.is_some() {
+            "degraded"
+        } else {
+            "unavailable"
+        },
         environment: state.environment.as_str(),
         production_ready: false,
         tenant_context: "development_header",
